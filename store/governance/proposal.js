@@ -5,7 +5,7 @@ import { utils } from 'ethers'
 import uniqBy from 'lodash/uniqBy'
 import chunk from 'lodash/chunk'
 
-import { lookupAddresses, createBatchRequestCallback } from '@/services'
+import { lookupAddresses, createBatchRequestCallback, fetchEvents } from '@/services'
 import { CHUNK_COUNT_PER_BATCH_REQUEST } from '@/constants'
 
 const { toWei, fromWei, toBN } = require('web3-utils')
@@ -36,21 +36,50 @@ const parseComment = (calldata, govInstance) => {
 
 const createProposalComment = (resultAll, votedEvent) => {
   const { transactionHash, returnValues, blockNumber } = votedEvent
-  const { voter } = returnValues
+
+  if (returnValues) {
+    const { voter } = returnValues
+
+    const comment = parseComment()
+
+    const percentage =
+      toBN(votedEvent.returnValues.votes)
+        .mul(toBN(10000))
+        .divRound(resultAll)
+        .toNumber() / 100
+
+    return {
+      id: `${transactionHash}-${voter}`,
+      percentage,
+      ...returnValues,
+      votes: fromWei(returnValues.votes),
+      transactionHash,
+      blockNumber,
+
+      ...comment,
+
+      ens: {
+        delegator: null,
+        voter: null
+      },
+      delegator: null,
+      timestamp: null
+    }
+  }
 
   const comment = parseComment()
 
   const percentage =
-    toBN(votedEvent.returnValues.votes)
+    toBN(votedEvent.votes)
       .mul(toBN(10000))
       .divRound(resultAll)
       .toNumber() / 100
 
   return {
-    id: `${transactionHash}-${voter}`,
+    id: `${transactionHash}-${votedEvent.voter}`,
     percentage,
-    ...returnValues,
-    votes: fromWei(returnValues.votes),
+    ...votedEvent,
+    votes: fromWei(votedEvent.votes),
     transactionHash,
     blockNumber,
 
@@ -186,21 +215,45 @@ const actions = {
     }
 
     try {
-      let votedEvents = await govInstance.getPastEvents('Voted', {
-        filter: {
-          // support: [false],
-          proposalId: proposal.id
-        },
-        fromBlock,
-        toBlock: 'latest'
-      })
+      let votedEvents
 
-      console.log('fetchVotedEvents', votedEvents.length)
+      try {
+        const { events } = await fetchEvents({
+          netId,
+          type: 'governance'
+        })
 
-      votedEvents = votedEvents.sort((a, b) => b.blockNumber - a.blockNumber)
-      votedEvents = uniqBy(votedEvents, 'returnValues.voter')
+        if (!events?.length) {
+          throw new Error('0 length')
+        }
 
-      console.log('fetchVotedEvents uniq', votedEvents.length)
+        votedEvents = events.filter(
+          ({ event, proposalId }) => event === 'Voted' && proposalId === proposal.id
+        )
+
+        console.log('fetchVotedEvents', votedEvents.length)
+
+        votedEvents = votedEvents.sort((a, b) => b.blockNumber - a.blockNumber)
+        votedEvents = uniqBy(votedEvents, 'voter')
+
+        console.log('fetchVotedEvents uniq', votedEvents.length)
+      } catch {
+        votedEvents = await govInstance.getPastEvents('Voted', {
+          filter: {
+            // support: [false],
+            proposalId: proposal.id
+          },
+          fromBlock,
+          toBlock: 'latest'
+        })
+
+        console.log('fetchVotedEvents', votedEvents.length)
+
+        votedEvents = votedEvents.sort((a, b) => b.blockNumber - a.blockNumber)
+        votedEvents = uniqBy(votedEvents, 'returnValues.voter')
+
+        console.log('fetchVotedEvents uniq', votedEvents.length)
+      }
 
       const resultAll = toBN(toWei(proposal.results.for)).add(toBN(toWei(proposal.results.against)))
       let newComments = votedEvents.map((votedEvent) => createProposalComment(resultAll, votedEvent))

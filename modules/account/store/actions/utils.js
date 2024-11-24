@@ -1,4 +1,4 @@
-import { graph } from '@/services'
+import { fetchEvents } from '@/services'
 import networkConfig from '@/networkConfig'
 
 function createMutation({ commit, rootState }, { type, payload }) {
@@ -16,7 +16,13 @@ function clearState({ dispatch }, { key }) {
 
 async function getEventsFromBlockPart({ echoContract, address, currentBlockNumber, netId }) {
   try {
-    const { events: graphEvents, lastSyncBlock } = await graph.getNoteAccounts({ address, netId })
+    // const { events: graphEvents, lastSyncBlock } = await graph.getNoteAccounts({ address, netId })
+    const { events: allEvents, lastSyncBlock } = await fetchEvents({
+      type: 'echo',
+      netId
+    })
+
+    const graphEvents = allEvents.filter((el) => address === el.address)
 
     if (graphEvents.length) {
       return graphEvents

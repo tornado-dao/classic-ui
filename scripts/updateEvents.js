@@ -86,7 +86,7 @@ async function main(netId, chosenToken, chosenEvent) {
         let events = await getPastEvents({
           type: eventName,
           fromBlock: cachedEvents.lastBlock + 1,
-          netId: netId,
+          netId,
           events: [],
           contractAttrs: [ABI, address]
         })

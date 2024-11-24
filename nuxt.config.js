@@ -187,7 +187,7 @@ export default {
       new webpack.IgnorePlugin(/worker_threads/),
       new webpack.DefinePlugin({
         'process.env': JSON.stringify({
-          CHAINNODES_KEY: process.env.CHAINNODES_KEY,
+          DEFAULT_RPC: process.env.DEFAULT_RPC,
           WC_BRIDGE: process.env.WC_BRIDGE,
           OLD_STORE_NAME: process.env.OLD_STORE_NAME,
           STORE_NAME: process.env.STORE_NAME,
@@ -225,7 +225,7 @@ export default {
   },
 
   provider: {
-    rpcUrl: `https://mainnet.chainnodes.org/${process.env.CHAINNODES_KEY}`
+    rpcUrl: process.env.DEFAULT_RPC || 'https://tornadocash-rpc.com'
   },
 
   // todo make custom loading page

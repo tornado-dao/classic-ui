@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { toWei, fromWei, toBN } from 'web3-utils'
-import { TornadoFeeOracleV4, TornadoFeeOracleV5 } from '@tornado/tornado-oracles'
+import { TornadoFeeOracleV6 } from '@tornado/tornado-oracles'
 
 export const state = () => {
   return {
@@ -14,12 +14,12 @@ export const getters = {
   oracle: (state, getters, rootState, rootGetters) => {
     const netId = Number(rootGetters['metamask/netId'])
     const { url: rpcUrl } = rootState.settings[`netId${netId}`].rpc
-    const { gasPrices } = rootGetters['metamask/networkConfig']
+
+    // Compatibility with old BSC relayers
+    const overrideGasPrice = netId === 56 ? { gasPrice: toWei('3.3', 'gwei').toString() } : undefined
 
     // Return old oracle for backwards compatibility, if chain is ETH Mainnet
-    return netId === 1
-      ? new TornadoFeeOracleV4(netId, rpcUrl, gasPrices)
-      : new TornadoFeeOracleV5(netId, rpcUrl, gasPrices)
+    return new TornadoFeeOracleV6(netId, rpcUrl, overrideGasPrice)
   },
   getGasPriceParams: (state) => {
     return state.gasPriceParams
@@ -77,16 +77,16 @@ export const actions = {
     if (currency !== nativeCurrency)
       await dispatch('application/setDefaultEthToReceive', { currency }, { root: true })
 
-    const withdrawalFee = await getters.oracle.calculateWithdrawalFeeViaRelayer(
-      'user_withdrawal',
+    const withdrawalFee = await getters.oracle.calculateWithdrawalFeeViaRelayer({
       tx,
-      feePercent,
-      currency.toLowerCase(),
+      txType: 'user_withdrawal',
+      relayerFeePercent: feePercent,
+      currency: currency.toLowerCase(),
       amount,
       decimals,
-      rootState.application.ethToReceive || 0,
-      rootState.price.prices[currency.toLowerCase()]
-    )
+      refundInEth: rootState.application.ethToReceive || 0,
+      tokenPriceInEth: rootState.price.prices[currency.toLowerCase()]
+    })
 
     commit('SAVE_WITHDRAWAL_FEE_VIA_RELAYER', toBN(withdrawalFee))
   }

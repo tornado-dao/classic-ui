@@ -32,6 +32,9 @@ function getRelayerValidateFunction(netId) {
     case 42161:
       return ajv.getSchema('l2Relayer')
 
+    case 11155111:
+      return ajv.getSchema('sepoliaRelayer')
+
     default:
       return ajv.getSchema('defaultRelayer')
   }

@@ -37,7 +37,7 @@ export function loadCachedEvents({ name, directory, deployedBlock }) {
 export async function getPastEvents({ type, fromBlock, netId, events, contractAttrs }) {
   let downloadedEvents = events
 
-  let [{ url: rpcUrl }] = Object.values(networkConfig[`netId${netId}`].rpcUrls)
+  const [{ url: rpcUrl }] = Object.values(networkConfig[`netId${netId}`].rpcUrls)
 
   const provider = new Web3.providers.HttpProvider(rpcUrl)
   const web3 = new Web3(provider)
@@ -49,7 +49,7 @@ export async function getPastEvents({ type, fromBlock, netId, events, contractAt
   const blockDifference = Math.ceil(blockNumberBuffer - fromBlock)
 
   // eth_logs and eth_filter are restricted > 10,000 block queries
-  const blockRange = blockSyncInterval ? blockSyncInterval : 10_000
+  const blockRange = blockSyncInterval || 10_000
 
   let chunksCount = blockDifference === 0 ? 1 : Math.ceil(blockDifference / blockRange)
   const chunkSize = Math.ceil(blockDifference / chunksCount)

@@ -314,7 +314,7 @@ export default {
 
           const { timestamp, txHash, isSpent } = event
 
-          const receipt = await this.getTransactionReceipt(txHash)
+          const from = event.from || (await this.getTransactionReceipt(txHash)).from
 
           const { nullifierHex, commitmentHex } = parseNote(withdrawNote)
 
@@ -324,19 +324,23 @@ export default {
             isSpent,
             txHash,
             timestamp,
-            from: receipt.from,
+            from,
             commitment: commitmentHex
           }
 
           if (isSpent) {
-            const { withdrawalBlock, txHash, to, fee, amount } = await this.$store.dispatch(
-              'application/loadWithdrawalData',
-              {
-                withdrawNote
-              }
-            )
+            const {
+              withdrawalBlock,
+              txHash,
+              to,
+              fee,
+              amount,
+              timestamp: eventTimestamp
+            } = await this.$store.dispatch('application/loadWithdrawalData', {
+              withdrawNote
+            })
 
-            const { timestamp } = await this.getBlock(withdrawalBlock)
+            const timestamp = eventTimestamp || (await this.getBlock(withdrawalBlock)).timestamp
 
             this.txWithdrawalInfo = {
               amount,

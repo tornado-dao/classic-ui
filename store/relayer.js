@@ -5,7 +5,7 @@ import namehash from 'eth-ens-namehash'
 
 import { httpConfig } from '@/constants'
 import { schema, relayerRegisterService } from '@/services'
-import { createChainIdState, parseNote, parseSemanticVersion } from '@/utils'
+import { createChainIdState, parseNote } from '@/utils'
 
 import ENSABI from '@/abis/ENS.abi.json'
 import networkConfig from '@/networkConfig'
@@ -43,7 +43,6 @@ const pickWeightedRandomRelayer = (items, netId) => {
 
   if (netId !== 1) {
     minFee = 0.01
-    maxFee = 0.3
   }
 
   const weightsScores = items.map((el) => calculateScore(el, minFee, maxFee))
@@ -196,7 +195,7 @@ export const mutations = {
 export const actions = {
   async askRelayerStatus(
     { rootState, dispatch, rootGetters },
-    { hostname, relayerAddress, stakeBalance, ensName }
+    { url, hostname, relayerAddress, stakeBalance, ensName }
   ) {
     try {
       const axios = await getAxios()
@@ -205,7 +204,10 @@ export const actions = {
         hostname += '/'
       }
 
-      const url = `${window.location.protocol}//${hostname}`
+      if (!url) {
+        url = `${window.location.protocol}//${hostname}`
+      }
+
       const reqConfig = {
         headers: {
           'Content-Type': 'application/json, application/x-www-form-urlencoded'
@@ -240,6 +242,7 @@ export const actions = {
         throw new Error(this.app.i18n.t('canNotFetchStatusFromTheRelayer'))
       }
 
+      /**
       const isRelayerUpdated = () => {
         const relayerVersion = response.data.version
 
@@ -255,6 +258,7 @@ export const actions = {
       if (!isRelayerUpdated()) {
         throw new Error('Outdated version.')
       }
+      **/
 
       return {
         isValid,
@@ -335,10 +339,11 @@ export const actions = {
   async getKnownRelayerData({ rootGetters, getters }, { relayerAddress, name }) {
     const { ensSubdomainKey } = rootGetters['metamask/networkConfig']
 
-    const [validRelayer] = await relayerRegisterService(getters.ethProvider).getValidRelayers(
+    const validRelayers = await relayerRegisterService(getters.ethProvider).getValidRelayers(
       [{ relayerAddress, ensName: name.replace(`${ensSubdomainKey}.`, '') }],
       ensSubdomainKey
     )
+    const validRelayer = validRelayers.find((r) => r.relayerAddress === relayerAddress)
     console.warn('validRelayer', validRelayer)
     return validRelayer
   },
@@ -378,7 +383,7 @@ export const actions = {
 
     const hostname = urlParser.host
 
-    return { hostname, ensName, stakeBalance: 0 }
+    return { url, hostname, ensName, stakeBalance: 0 }
   },
   async getRelayerData({ state, dispatch }, { url, name }) {
     const knownRelayer = state.validRelayers.find((el) => el.name === name)

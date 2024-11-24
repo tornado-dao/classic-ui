@@ -25,10 +25,6 @@ export default {
         name: 'Tornado RPC',
         url: 'https://tornadocash-rpc.com/mainnet'
       },
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://mainnet.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
-      },
       mevblockerRPC: {
         name: 'MevblockerRPC',
         url: 'https://rpc.mevblocker.io'
@@ -38,7 +34,7 @@ export default {
         url: 'https://1rpc.io/eth'
       }
     },
-    multicall: '0xeefba1e63905ef1d7acba5a8513c70307c1ce441',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     routerContract: '0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',
     registryContract: '0x58E8dCC13BE9780fC42E8723D8EaD4CF46943dF2',
     echoContractAccount: '0x9B27DD5Bb15d42DC224FCD0B7caEbBe16161Df42',
@@ -145,16 +141,12 @@ export default {
     emptyElement: '21663839004416932945382355908790599225266501822907911457504978515578255421292',
     networkName: 'Binance Smart Chain',
     deployedBlock: 8158799,
-    multicall: '0x41263cba59eb80dc200f3e2544eda4ed6a90e76c',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     echoContractAccount: '0xa75BF2815618872f155b7C4B0C81bF990f5245E4',
     rpcUrls: {
       tornadoRPC: {
         name: 'Tornado RPC',
         url: 'https://tornadocash-rpc.com/bsc'
-      },
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://bsc-mainnet.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
       },
       oneRPC: {
         name: '1RPC',
@@ -171,6 +163,32 @@ export default {
         },
         symbol: 'BNB',
         decimals: 18
+      },
+      usdt: {
+        instanceAddress: {
+          '10': '0x261fB4f84bb0BdEe7E035B6a8a08e5c35AdacdDD',
+          '100': '0x3957861d4897d883C9b944C0b4E22bBd0DDE6e21',
+          '1000': '0x6D180403AdFb39F70983eB51A033C5e52eb9BB69',
+          '10000': '0x3722662D8AaB07B216B14C02eF0ee940d14A4200'
+        },
+        instanceApproval: true,
+        tokenAddress: '0x55d398326f99059fF775485246999027B3197955',
+        symbol: 'USDT',
+        decimals: 18,
+        gasLimit: '700000'
+      },
+      btcb: {
+        instanceAddress: {
+          '0.0001': '0x736dABbFc8101Ae75287104eCcf67e45D7369Ae1',
+          '0.001': '0x82c7Ce6f1F158cEC5536d591a2BC19864b3CA823',
+          '0.01': '0x8284c96679037d8081E498d8F767cA5a140BFAAf',
+          '0.1': '0x2bcD128Ce23ee30Ee945E613ff129c4DE1102C79'
+        },
+        instanceApproval: true,
+        tokenAddress: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+        symbol: 'BTCB',
+        decimals: 18,
+        gasLimit: '700000'
       }
     },
     ensSubdomainKey: 'bsc-tornado',
@@ -200,13 +218,9 @@ export default {
     emptyElement: '21663839004416932945382355908790599225266501822907911457504978515578255421292',
     networkName: 'Polygon (Matic) Network',
     deployedBlock: 16257962,
-    multicall: '0x11ce4B23bD875D7F5C6a31084f55fDe1e9A87507',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     echoContractAccount: '0xa75BF2815618872f155b7C4B0C81bF990f5245E4',
     rpcUrls: {
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://polygon-mainnet.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
-      },
       oneRpc: {
         name: '1RPC',
         url: 'https://1rpc.io/matic'
@@ -251,18 +265,10 @@ export default {
     emptyElement: '21663839004416932945382355908790599225266501822907911457504978515578255421292',
     networkName: 'Optimism',
     deployedBlock: 2243689,
-    multicall: '0x35A6Cdb2C9AD4a45112df4a04147EB07dFA01aB7',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     echoContractAccount: '0xa75BF2815618872f155b7C4B0C81bF990f5245E4',
     ovmGasPriceOracleContract: '0x420000000000000000000000000000000000000F',
     rpcUrls: {
-      tornadoRPC: {
-        name: 'Tornado RPC',
-        url: 'https://tornadocash-rpc.com/op'
-      },
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://optimism-mainnet.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
-      },
       oneRpc: {
         name: '1RPC',
         url: 'https://1rpc.io/op'
@@ -307,16 +313,12 @@ export default {
     emptyElement: '21663839004416932945382355908790599225266501822907911457504978515578255421292',
     networkName: 'Arbitrum One',
     deployedBlock: 3430648,
-    multicall: '0x842eC2c7D803033Edf55E478F461FC547Bc54EB2',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     echoContractAccount: '0xa75BF2815618872f155b7C4B0C81bF990f5245E4',
     rpcUrls: {
       tornadoRPC: {
         name: 'Tornado RPC',
         url: 'https://tornadocash-rpc.com/arbitrum'
-      },
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://arbitrum-one.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
       },
       oneRpc: {
         name: '1rpc',
@@ -366,16 +368,12 @@ export default {
     emptyElement: '21663839004416932945382355908790599225266501822907911457504978515578255421292',
     networkName: 'Gnosis Chain',
     deployedBlock: 17754561,
-    multicall: '0xb5b692a88bdfc81ca69dcb1d924f59f0413a602a',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     echoContractAccount: '0xa75BF2815618872f155b7C4B0C81bF990f5245E4',
     rpcUrls: {
       tornadoRPC: {
         name: 'Tornado RPC',
         url: 'https://tornadocash-rpc.com/gnosis'
-      },
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://gnosis-mainnet.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
       },
       blockPi: {
         name: 'BlockPi',
@@ -421,7 +419,7 @@ export default {
     emptyElement: '21663839004416932945382355908790599225266501822907911457504978515578255421292',
     networkName: 'Avalanche Mainnet',
     deployedBlock: 4429818,
-    multicall: '0xe86e3989c74293Acc962156cd3F525c07b6a1B6e',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     echoContractAccount: '0xa75BF2815618872f155b7C4B0C81bF990f5245E4',
     rpcUrls: {
       publicRpc: {
@@ -486,10 +484,6 @@ export default {
       sepolia: {
         name: 'Sepolia RPC',
         url: 'https://rpc.sepolia.org'
-      },
-      chainnodes: {
-        name: 'Chainnodes RPC',
-        url: 'https://sepolia.chainnodes.org/d692ae63-0a7e-43e0-9da9-fe4f4cc6c607'
       }
     },
     tokens: {

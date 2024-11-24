@@ -149,8 +149,12 @@ export const actions = {
   async approve({ rootState, getters, dispatch, rootGetters, state }) {
     try {
       const netId = rootGetters['metamask/netId']
-      const { currency } = rootState.application.selectedInstance
-      const { decimals } = rootGetters['metamask/networkConfig'].tokens[currency]
+      const { currency, amount } = rootState.application.selectedInstance
+      const {
+        decimals,
+        instanceAddress: { [amount]: instanceAddress },
+        instanceApproval
+      } = rootGetters['metamask/networkConfig'].tokens[currency]
       const tokenInstance = getters.tokenContract({ currency, netId })
       const tornadoProxy = rootGetters['application/tornadoProxyContract']({ netId })
 
@@ -160,10 +164,10 @@ export const actions = {
           ? toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
           : toBN(getters.fromDecimals(state.approvalAmount, decimals))
       const data = tokenInstance.methods
-        .approve(tornadoProxy._address, amountToApprove.toString())
+        .approve(instanceApproval ? instanceAddress : tornadoProxy._address, amountToApprove.toString())
         .encodeABI()
       const gas = await tokenInstance.methods
-        .approve(tornadoProxy._address, amountToApprove.toString())
+        .approve(instanceApproval ? instanceAddress : tornadoProxy._address, amountToApprove.toString())
         .estimateGas({
           from: ethAccount
         })
@@ -190,14 +194,20 @@ export const actions = {
   },
   async fetchTokenAllowance({ getters, rootGetters, commit, rootState }) {
     const netId = rootGetters['metamask/netId']
-    const { currency } = rootState.application.selectedInstance
+    const { currency, amount } = rootState.application.selectedInstance
     const { ethAccount } = rootState.metamask
     try {
+      const {
+        instanceAddress: { [amount]: instanceAddress },
+        instanceApproval
+      } = rootGetters['metamask/networkConfig'].tokens[currency]
       const tornadoInstance = rootGetters['application/tornadoProxyContract']({ netId })
       const nativeCurrency = rootGetters['metamask/nativeCurrency']
       if (currency !== nativeCurrency && ethAccount) {
         const tokenInstance = getters.tokenContract({ currency, netId })
-        const allowance = await tokenInstance.methods.allowance(ethAccount, tornadoInstance._address).call()
+        const allowance = await tokenInstance.methods
+          .allowance(ethAccount, instanceApproval ? instanceAddress : tornadoInstance._address)
+          .call()
         commit('SAVE_ALLOWANCE', { allowance })
       }
     } catch (e) {

@@ -3,13 +3,14 @@ import namehash from 'eth-ens-namehash'
 import { BigNumber as BN } from 'bignumber.js'
 import { toChecksumAddress, isAddress } from 'web3-utils'
 
-import { graph } from '@/services'
+import { fetchEvents } from '@/services'
 import networkConfig from '@/networkConfig'
 import { REGISTRY_DEPLOYED_BLOCK } from '@/constants'
 import { sleep, flattenNArray } from '@/utils'
 
 import AggregatorABI from '@/abis/Aggregator.abi.json'
 import RelayerRegistryABI from '@/abis/RelayerRegistry.abi.json'
+import STATIC_RELAYER from '@/relayers.json'
 
 const MIN_STAKE_BALANCE = '0X1B1AE4D6E2EF500000' // 500 TORN
 
@@ -174,13 +175,20 @@ class RelayerRegister {
     let allRelayers = cachedEvents
 
     if (!cachedEvents || !cachedEvents.length) {
-      const { lastSyncBlock, events } = await graph.getAllRegisters(blockFrom)
+      // const { lastSyncBlock, events } = await graph.getAllRegisters(blockFrom)
+      const { events: apiEvents, lastSyncBlock } = await fetchEvents({
+        type: 'registry',
+        netId: 1,
+        fromBlock: blockFrom
+      })
+
+      const events = apiEvents.filter(({ event }) => event === 'RelayerRegistered')
 
       if (events.length) {
         blockTo = lastSyncBlock + 1
         cachedEvents = events.map((el) => ({
           ensName: el.ensName,
-          relayerAddress: toChecksumAddress(el.address)
+          relayerAddress: toChecksumAddress(el.relayerAddress)
         }))
       }
     }
@@ -240,6 +248,7 @@ class RelayerRegister {
 
     const isOwner = relayer.relayerAddress === curr.owner
     const hasMinBalance = new BN(curr.balance).gte(MIN_STAKE_BALANCE)
+    const hasRelayer = acc.find(({ ensName }) => ensName === relayer.ensName)
 
     if (
       hostname &&
@@ -247,7 +256,8 @@ class RelayerRegister {
       mainnetSubdomain &&
       curr.isRegistered &&
       hasMinBalance &&
-      !isHostWithProtocol
+      !isHostWithProtocol &&
+      !hasRelayer
     ) {
       acc.push({
         hostname,
@@ -279,7 +289,18 @@ class RelayerRegister {
       []
     )
 
-    return validRelayers
+    const staticRelayers = STATIC_RELAYER.reduce((acc, relayer) => {
+      if (relayer.hostnames[ensSubdomainKey]) {
+        acc.push({
+          ...relayer,
+          hostname: relayer.hostnames[ensSubdomainKey],
+          stakeBalance: MIN_STAKE_BALANCE
+        })
+      }
+      return acc
+    }, [])
+
+    return [...staticRelayers, ...validRelayers]
   }
 
   getRelayers = async (ensSubdomainKey) => {

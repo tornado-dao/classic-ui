@@ -12,6 +12,8 @@ import AggregatorABI from '@/abis/Aggregator.abi.json'
 
 import { httpConfig } from '@/constants'
 
+import { fetchEvents } from '@/services'
+
 const { numberToHex, toWei, fromWei, toBN, hexToNumber, hexToNumberString } = require('web3-utils')
 
 const state = () => {
@@ -682,10 +684,26 @@ const actions = {
       }
 
       const [events, statuses] = await Promise.all([
-        govInstance.getPastEvents('ProposalCreated', {
-          fromBlock: config.constants.GOVERNANCE_BLOCK,
-          toBlock: 'latest'
-        }),
+        (async () => {
+          try {
+            const { events } = await fetchEvents({
+              netId,
+              type: 'governance',
+              fromBlock: config.constants.GOVERNANCE_BLOCK
+            })
+
+            if (!events?.length) {
+              throw new Error('0 length')
+            }
+
+            return events.filter((e) => e.event === 'ProposalCreated')
+          } catch {
+            return govInstance.getPastEvents('ProposalCreated', {
+              fromBlock: config.constants.GOVERNANCE_BLOCK,
+              toBlock: 'latest'
+            })
+          }
+        })(),
         aggregatorContract.methods.getAllProposals(govInstance._address).call()
       ])
 
@@ -735,17 +753,41 @@ const actions = {
       }
 
       proposals = events
-        .map(({ returnValues, blockNumber }, index) => {
-          const id = Number(returnValues.id)
+        .map((event, index) => {
+          const { returnValues, blockNumber } = event
+
+          if (returnValues) {
+            const id = Number(returnValues.id)
+            const { state, startTime, endTime, forVotes, againstVotes } = statuses[index]
+            const { title, description } = parseDescription({ id, text: returnValues.description })
+
+            return {
+              id,
+              title,
+              description,
+              target: returnValues.target,
+              proposer: returnValues.proposer,
+              endTime: Number(endTime),
+              startTime: Number(startTime),
+              status: ProposalState[Number(state)],
+              blockNumber,
+              results: {
+                for: fromWei(forVotes),
+                against: fromWei(againstVotes)
+              }
+            }
+          }
+
+          const id = event.id
           const { state, startTime, endTime, forVotes, againstVotes } = statuses[index]
-          const { title, description } = parseDescription({ id, text: returnValues.description })
+          const { title, description } = parseDescription({ id, text: event.description })
 
           return {
             id,
             title,
             description,
-            target: returnValues.target,
-            proposer: returnValues.proposer,
+            target: event.target,
+            proposer: event.proposer,
             endTime: Number(endTime),
             startTime: Number(startTime),
             status: ProposalState[Number(state)],
@@ -844,22 +886,44 @@ const actions = {
 
       const aggregatorContract = getters.aggregatorContract
       const govInstance = getters.govContract({ netId })
-      let delegatedAccs = await govInstance.getPastEvents('Delegated', {
-        filter: {
-          to: ethAccount
-        },
-        fromBlock: config.constants.GOVERNANCE_BLOCK,
-        toBlock: 'latest'
-      })
-      let undelegatedAccs = await govInstance.getPastEvents('Undelegated', {
-        filter: {
-          from: ethAccount
-        },
-        fromBlock: config.constants.GOVERNANCE_BLOCK,
-        toBlock: 'latest'
-      })
-      delegatedAccs = delegatedAccs.map((acc) => acc.returnValues.account)
-      undelegatedAccs = undelegatedAccs.map((acc) => acc.returnValues.account)
+      let delegatedAccs, undelegatedAccs
+
+      try {
+        const { events } = await fetchEvents({
+          netId,
+          type: 'governance',
+          fromBlock: config.constants.GOVERNANCE_BLOCK
+        })
+
+        if (!events?.length) {
+          throw new Error('0 length')
+        }
+
+        delegatedAccs = events
+          .filter((e) => e.event === 'Delegated' && e.delegateTo === ethAccount)
+          .map((e) => e.account)
+        undelegatedAccs = events
+          .filter((e) => e.event === 'Undelegated' && e.delegateFrom === ethAccount)
+          .map((e) => e.account)
+      } catch {
+        delegatedAccs = await govInstance.getPastEvents('Delegated', {
+          filter: {
+            to: ethAccount
+          },
+          fromBlock: config.constants.GOVERNANCE_BLOCK,
+          toBlock: 'latest'
+        })
+        undelegatedAccs = await govInstance.getPastEvents('Undelegated', {
+          filter: {
+            from: ethAccount
+          },
+          fromBlock: config.constants.GOVERNANCE_BLOCK,
+          toBlock: 'latest'
+        })
+        delegatedAccs = delegatedAccs.map((acc) => acc.returnValues.account)
+        undelegatedAccs = undelegatedAccs.map((acc) => acc.returnValues.account)
+      }
+
       const uniq = delegatedAccs.filter((obj, index, self) => {
         const indexUndelegated = undelegatedAccs.indexOf(obj)
         if (indexUndelegated !== -1) {

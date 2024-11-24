@@ -10,6 +10,7 @@ export { default as graph } from './graph'
 export { default as schema } from './schema'
 export { default as walletConnectConnector } from './walletConnect'
 export * from './lookupAddress'
+export * from './eventApi'
 
 // eslint-disable-next-line no-undef
 window.graph = graph

@@ -1,0 +1,28 @@
+[
+  {
+    "ensName": "tornadowithdraw.eth",
+    "hostnames": {
+      "bsc-tornado": "tornadowithdraw.com/56",
+      "polygon-tornado": "tornadowithdraw.com/137",
+      "optimism-tornado": "tornadowithdraw.com/10",
+      "arbitrum-tornado": "tornadowithdraw.com/42161",
+      "gnosis-tornado": "tornadowithdraw.com/100",
+      "avalanche-tornado": "tornadowithdraw.com/43114",
+      "sepolia-tornado": "tornadowithdraw.com/11155111"
+    },
+    "relayerAddress": "0x40c3d1656a26C9266f4A10fed0D87EFf79F54E64"
+  },
+  {
+    "ensName": "rpc.tornadowithdraw.eth",
+    "hostnames": {
+      "bsc-tornado": "tornadocash-rpc.com/56",
+      "polygon-tornado": "tornadocash-rpc.com/137",
+      "optimism-tornado": "tornadocash-rpc.com/10",
+      "arbitrum-tornado": "tornadocash-rpc.com/42161",
+      "gnosis-tornado": "tornadocash-rpc.com/100",
+      "avalanche-tornado": "tornadocash-rpc.com/43114",
+      "sepolia-tornado": "tornadocash-rpc.com/11155111"
+    },
+    "relayerAddress": "0xFF787B7A5cd8a88508361E3B7bcE791Aa2796526"
+  }
+]

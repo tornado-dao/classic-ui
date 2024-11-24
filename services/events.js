@@ -1,6 +1,7 @@
 import Web3 from 'web3'
 
-import graph from '@/services/graph'
+// import graph from '@/services/graph'
+import { fetchEvents } from '@/services'
 import { download } from '@/store/snark'
 import networkConfig, { enabledChains, blockSyncInterval } from '@/networkConfig'
 import InstanceABI from '@/abis/Instance.abi.json'
@@ -220,12 +221,27 @@ class EventService {
 
   async getEventsFromGraph({ fromBlock, methodName }) {
     try {
+      /**
       const { events, lastSyncBlock } = await graph[methodName]({
         fromBlock,
         netId: this.netId,
         amount: this.amount,
         currency: this.currency
       })
+      **/
+
+      methodName = methodName.substr(6)
+
+      methodName = methodName.substr(0, methodName.length - 1).toLowerCase()
+
+      const { events, lastSyncBlock } = await fetchEvents({
+        fromBlock,
+        netId: this.netId,
+        amount: this.amount,
+        currency: this.currency,
+        type: methodName
+      })
+
       return {
         events,
         lastBlock: lastSyncBlock

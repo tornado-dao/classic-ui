@@ -9,7 +9,7 @@ import MulticallABI from '@/abis/Multicall.json'
 import InstanceABI from '@/abis/Instance.abi.json'
 import TornadoProxyABI from '@/abis/TornadoProxy.abi.json'
 
-import { graph, treesInterface, EventsFactory } from '@/services'
+import { treesInterface, EventsFactory, fetchEvents } from '@/services'
 
 import {
   randomBN,
@@ -233,8 +233,15 @@ const actions = {
     const netId = rootGetters['metamask/netId']
     const { currency, amount } = state.selectedStatistic
 
-    const eventService = getters.eventsInterface.getService({ netId, amount, currency })
-    const graphEvents = await eventService.getEventsFromGraph({ methodName: 'getStatistic' })
+    // const eventService = getters.eventsInterface.getService({ netId, amount, currency })
+    // const graphEvents = await eventService.getEventsFromGraph({ methodName: 'getStatistic' })
+    const graphEvents = await fetchEvents({
+      netId,
+      type: 'deposit',
+      currency,
+      amount,
+      recent: true
+    })
 
     let statistic = graphEvents?.events
 
@@ -435,8 +442,15 @@ const actions = {
 
       let events = []
 
+      /**
       const { events: graphEvents, lastSyncBlock } = await graph.getAllEncryptedNotes({
         netId,
+        fromBlock: deployedBlock
+      })
+      **/
+      const { events: graphEvents, lastSyncBlock } = await fetchEvents({
+        netId,
+        type: 'encrypted_notes',
         fromBlock: deployedBlock
       })
 
@@ -869,7 +883,8 @@ const actions = {
           timestamp: lastEvent.timestamp,
           leafIndex: lastEvent.leafIndex,
           txHash: lastEvent.transactionHash,
-          depositBlock: lastEvent.blockNumber
+          depositBlock: lastEvent.blockNumber,
+          from: lastEvent.from
         }
       }
     } catch (err) {
@@ -893,7 +908,8 @@ const actions = {
           to: lastEvent.to,
           fee: lastEvent.fee,
           txHash: lastEvent.transactionHash,
-          blockNumber: lastEvent.blockNumber
+          blockNumber: lastEvent.blockNumber,
+          timestamp: lastEvent.timestamp
         }
       }
     } catch (err) {

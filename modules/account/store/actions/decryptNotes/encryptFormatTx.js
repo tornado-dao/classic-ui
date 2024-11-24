@@ -53,7 +53,7 @@ export async function _encryptFormatTx({ dispatch, getters, rootGetters }, { eve
         return getDeposit({ event, netId, service, instance })
       })
 
-      const proceedDeposits = await Promise.all(depositPromises)
+      const proceedDeposits = (await Promise.all(depositPromises)).filter((d) => d)
       console.log({ proceedDeposits })
 
       dispatch(

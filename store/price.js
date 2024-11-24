@@ -19,7 +19,7 @@ export const getters = {
     const netId = Number(rootGetters['metamask/netId'])
     const { url: rpcUrl } = rootState.settings[`netId${netId}`].rpc
 
-    return new TokenPriceOracle(rpcUrl)
+    return new TokenPriceOracle(rpcUrl, undefined, undefined, netId)
   },
   tokenRate: (state, getters, rootState) => {
     return state.prices[rootState.application.selectedStatistic.currency]
@@ -44,13 +44,34 @@ export const mutations = {
 }
 
 export const actions = {
-  async fetchTokenPrice({ getters, commit, dispatch, rootState }) {
+  async fetchTokenPrice({ rootGetters, getters, commit, dispatch, rootState }) {
     if (getters.isPriceWatcherDisabled) {
       return
     }
 
+    const config = rootGetters['metamask/networkConfig']
+    const tokens = Object.entries(config.tokens).reduce((acc, [symbol, { tokenAddress, decimals }]) => {
+      if (tokenAddress) {
+        acc.push({
+          tokenAddress,
+          symbol,
+          decimals
+        })
+      }
+
+      return acc
+    }, [])
+
+    if (config['torn.contract.tornadocash.eth']) {
+      tokens.push({
+        tokenAddress: config['torn.contract.tornadocash.eth'],
+        symbol: 'torn',
+        decimals: 18
+      })
+    }
+
     try {
-      const prices = await getters.priceOracle.fetchPrices()
+      const prices = await getters.priceOracle.fetchPrices(tokens)
       console.log('prices', prices)
       commit('SAVE_TOKEN_PRICES', prices)
 

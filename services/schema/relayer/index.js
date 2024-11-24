@@ -5,11 +5,15 @@ import { statusSchema as defaultRelayer } from './default'
 import { statusSchema as polygonRelayer } from './polygon'
 import { statusSchema as avalancheRelayer } from './avalanche'
 
+const sepoliaRelayer = JSON.parse(JSON.stringify(defaultRelayer))
+sepoliaRelayer.properties.ethPrices.required = ['dai']
+
 export default {
   l2Relayer,
   bscRelayer,
   xdaiRelayer,
   defaultRelayer,
   polygonRelayer,
-  avalancheRelayer
+  avalancheRelayer,
+  sepoliaRelayer
 }
