@@ -83,11 +83,15 @@ export const actions = {
       const chainId = await web3.eth.getChainId()
       const isCurrent = Number(chainId) === Number(netId)
 
-      if (isEthRpc || isCurrent) {
-        return { isValid: true }
-      } else {
+      if (!isEthRpc && !isCurrent) {
         return { isValid: false, error: this.app.i18n.t('thisRpcIsForDifferentNetwork') }
       }
+
+      const probeTx = { to: '0x0000000000000000000000000000000000000000', data: '0x' }
+      await web3.eth.call(probeTx)
+      await web3.eth.estimateGas(probeTx)
+
+      return { isValid: true }
     } catch (e) {
       console.error('checkRpc', e)
       return { isValid: false, error: this.app.i18n.t('rpcIsDown') }
