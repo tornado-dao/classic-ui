@@ -1,4 +1,3 @@
-import Web3 from 'web3'
 import namehash from 'eth-ens-namehash'
 import { BigNumber as BN } from 'bignumber.js'
 import { toChecksumAddress, isAddress } from 'web3-utils'
@@ -158,10 +157,7 @@ class RelayerRegister {
   }
 
   getENSAddress = async (ensName) => {
-    const { url } = Object.values(networkConfig.netId1.rpcUrls)[0]
-    const provider = new Web3(url)
-
-    const ensAddress = await provider.eth.ens.getAddress(ensName)
+    const ensAddress = await this.provider.ens.getAddress(ensName)
 
     return ensAddress
   }

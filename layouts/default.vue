@@ -84,6 +84,7 @@ export default {
           this.$store.dispatch('price/fetchTokenPrice', {}, { root: true })
           try {
             this.$store.dispatch('application/loadAllNotesData')
+            this.$store.dispatch('application/updateSelectEvents')
 
             this.$nextTick(() => {
               this.$nuxt.$loading.start()

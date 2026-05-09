@@ -205,7 +205,7 @@ export const actions = {
         hostname += '/'
       }
 
-      const url = `${window.location.protocol}//${hostname}`
+      const url = `https://${hostname}`
       const reqConfig = {
         headers: {
           'Content-Type': 'application/json, application/x-www-form-urlencoded'
