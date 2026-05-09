@@ -1,0 +1,15 @@
+{
+  "name": "classic-ui-e2e-playwright",
+  "version": "0.1.0",
+  "private": true,
+  "description": "End-to-end smoke tests for the classic-ui app",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "install-browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1"
+  }
+}
