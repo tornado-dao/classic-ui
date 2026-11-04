@@ -279,16 +279,62 @@ class RelayerRegister {
   getValidRelayers = async (relayers, ensSubdomainKey) => {
     const relayerNameHashes = relayers.map((r) => namehash.hash(r.ensName))
 
-    const relayersData = await this.aggregator.methods.relayersData(relayerNameHashes, subdomains).call()
+    // Deduplicate and record original indexes
+    const uniqueMap = new Map() // hash -> [original indexes]
+    relayerNameHashes.forEach((hash, index) => {
+      if (!uniqueMap.has(hash)) uniqueMap.set(hash, [])
+      uniqueMap.get(hash).push(index)
+    })
+    const uniqueHashes = Array.from(uniqueMap.keys())
 
-    const validRelayers = relayersData.reduce(
-      (acc, curr, index) => this.filterRelayer(acc, curr, ensSubdomainKey, relayers[index]),
-      []
-    )
+    const allRelayersData = new Array(relayerNameHashes.length)
+
+    async function safeCall(hashes) {
+      if (hashes.length === 0) return []
+
+      try {
+        const data = await this.aggregator.methods.relayersData(hashes, subdomains).call({ gas: 30000000 })
+        return data
+      } catch (err) {
+        if (hashes.length === 1) {
+          // Single hash failed → skip this bad hash
+          console.warn(`Single hash failed, skipping: ${hashes[0]}`)
+          return [null] // return null as placeholder
+        }
+        // On failure, split in half and retry
+        console.warn(`Batch failed (${hashes.length} items), splitting into smaller batches...`)
+        const mid = Math.ceil(hashes.length / 2)
+        const left = await safeCall.call(this, hashes.slice(0, mid))
+        const right = await safeCall.call(this, hashes.slice(mid))
+        return [...left, ...right]
+      }
+    }
+
+    // Call in small batches (start with 4)
+    const BATCH_SIZE = 20
+    for (let i = 0; i < uniqueHashes.length; i += BATCH_SIZE) {
+      const batchHashes = uniqueHashes.slice(i, i + BATCH_SIZE)
+      console.log(`Processing batch starting at index ${i}, size ${batchHashes.length}`)
+
+      const batchData = await safeCall.call(this, batchHashes)
+
+      // Write results back to original positions
+      batchHashes.forEach((hash, batchIdx) => {
+        const originalIndexes = uniqueMap.get(hash)
+        originalIndexes.forEach((origIdx) => {
+          allRelayersData[origIdx] = batchData[batchIdx]
+        })
+      })
+    }
+
+    // Filter (handle nulls from failed hashes)
+    const validRelayers = allRelayersData.reduce((acc, curr, index) => {
+      if (curr === null) return acc // skip failed ones
+      return this.filterRelayer(acc, curr, ensSubdomainKey, relayers[index])
+    }, [])
 
     return validRelayers
   }
-
   getRelayers = async (ensSubdomainKey) => {
     const relayers = await this.fetchRelayers()
     const validRelayers = await this.getValidRelayers(relayers, ensSubdomainKey)
